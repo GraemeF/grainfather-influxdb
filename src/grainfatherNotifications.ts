@@ -69,6 +69,42 @@ function isGrainfatherNotification(x: {
   ].includes(x?.type);
 }
 
+function isTemperatureNotification(x: {
+  type: string;
+}): x is GrainfatherTemperatureNotification {
+  return ['temperature'].includes(x?.type);
+}
+
+function isStatusNotification(x: {
+  type: string;
+}): x is GrainfatherStatusNotification {
+  return ['status'].includes(x?.type);
+}
+
+function isTimerNotification(x: {
+  type: string;
+}): x is GrainfatherTimerNotification {
+  return ['timer'].includes(x?.type);
+}
+
+function isInteractionNotification(x: {
+  type: string;
+}): x is GrainfatherInteractionNotification {
+  return ['interaction'].includes(x?.type);
+}
+
+function isMiscNotification(x: {
+  type: string;
+}): x is GrainfatherMiscNotification {
+  return ['misc'].includes(x?.type);
+}
+
+function isConfigNotification(x: {
+  type: string;
+}): x is GrainfatherConfigNotification {
+  return ['config'].includes(x?.type);
+}
+
 function parseNotification(notification): GrainfatherNotification | undefined {
   const components = notification.substring(1).split(',').slice(0, -1);
   const type = notification[0];
@@ -131,12 +167,43 @@ function parseNotification(notification): GrainfatherNotification | undefined {
   }
 }
 
-export function grainfatherNotifications(
-  notifications: Observable<string>,
-): Observable<GrainfatherNotification | undefined> {
-  return notifications.pipe(
+export function grainfatherNotifications(notifications: Observable<string>): {
+  temperature$: Observable<GrainfatherTemperatureNotification>;
+  status$: Observable<GrainfatherStatusNotification>;
+  timer$: Observable<GrainfatherTimerNotification>;
+  interaction$: Observable<GrainfatherInteractionNotification>;
+  misc$: Observable<GrainfatherMiscNotification>;
+  config$: Observable<GrainfatherConfigNotification>;
+} {
+  const parsed$ = notifications.pipe(
     map((dataString) => parseNotification(dataString)),
     filter(isGrainfatherNotification),
-    distinctUntilChanged(isDeepStrictEqual),
   );
+
+  return {
+    temperature$: parsed$.pipe(
+      filter(isTemperatureNotification),
+      distinctUntilChanged(isDeepStrictEqual),
+    ),
+    status$: parsed$.pipe(
+      filter(isStatusNotification),
+      distinctUntilChanged(isDeepStrictEqual),
+    ),
+    timer$: parsed$.pipe(
+      filter(isTimerNotification),
+      distinctUntilChanged(isDeepStrictEqual),
+    ),
+    interaction$: parsed$.pipe(
+      filter(isInteractionNotification),
+      distinctUntilChanged(isDeepStrictEqual),
+    ),
+    misc$: parsed$.pipe(
+      filter(isMiscNotification),
+      distinctUntilChanged(isDeepStrictEqual),
+    ),
+    config$: parsed$.pipe(
+      filter(isConfigNotification),
+      distinctUntilChanged(isDeepStrictEqual),
+    ),
+  };
 }
