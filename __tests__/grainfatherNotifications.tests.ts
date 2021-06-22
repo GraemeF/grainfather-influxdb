@@ -19,26 +19,25 @@ describe('grainfatherNotifications', () => {
         c: 'X63.0,25.8,ZZZZZZ',
       };
       const temperatures$ = cold('abc', temperatures);
-      expectObservable(grainfatherNotifications(temperatures$).temperature$).toBe(
-        'abc',
-        {
-          a: {
-            type: 'temperature',
-            currentTemperature: 23.8,
-            targetTemperature: 61.0,
-          },
-          b: {
-            type: 'temperature',
-            currentTemperature: 24.8,
-            targetTemperature: 62.0,
-          },
-          c: {
-            type: 'temperature',
-            currentTemperature: 25.8,
-            targetTemperature: 63.0,
-          },
+      expectObservable(
+        grainfatherNotifications(temperatures$).temperature$,
+      ).toBe('abc', {
+        a: {
+          type: 'temperature',
+          currentTemperature: 23.8,
+          targetTemperature: 61.0,
         },
-      );
+        b: {
+          type: 'temperature',
+          currentTemperature: 24.8,
+          targetTemperature: 62.0,
+        },
+        c: {
+          type: 'temperature',
+          currentTemperature: 25.8,
+          targetTemperature: 63.0,
+        },
+      });
     });
   });
 
@@ -82,6 +81,28 @@ describe('grainfatherNotifications', () => {
           targetTemperature: 61.0,
         },
       });
+    });
+  });
+
+  it('skips duplicated timer notifications when there are other notifications between', async () => {
+    scheduler.run(({ cold, expectObservable }) => {
+      const temperatures = {
+        a: 'X61.0,23.8,ZZZZZZ',
+        b: 'T0,0,0,0,ZZZZZZZZ',
+      };
+      const temperatures$ = cold('bab', temperatures);
+      expectObservable(grainfatherNotifications(temperatures$).timer$).toBe(
+        'b--',
+        {
+          b: {
+            type: 'timer',
+            timerActive: '0',
+            timeLeftMinutes: 0,
+            timerTotalStartTime: 0,
+            timeLeftSeconds: 0,
+          },
+        },
+      );
     });
   });
 });

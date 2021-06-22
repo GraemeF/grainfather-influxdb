@@ -1,4 +1,7 @@
-import { grainfatherNotifications } from './grainfatherNotifications';
+import {
+  GrainfatherNotification,
+  grainfatherNotifications,
+} from './grainfatherNotifications';
 import { fromEvent } from 'rxjs';
 import Bluetooth from './Bluetooth';
 import { map } from 'rxjs/operators';
@@ -9,9 +12,13 @@ const notificationStrings = fromEvent(new Bluetooth(), 'data').pipe(
 
 const notifications = grainfatherNotifications(notificationStrings);
 
-notifications.temperature$.subscribe((x) => console.log(x));
-notifications.config$.subscribe((x) => console.log(x));
-notifications.misc$.subscribe((x) => console.log(x));
-notifications.status$.subscribe((x) => console.log(x));
-notifications.timer$.subscribe((x) => console.log(x));
-notifications.interaction$.subscribe((x) => console.log(x));
+function log(x: GrainfatherNotification) {
+  console.log(x.type, JSON.stringify(x));
+}
+
+notifications.temperature$.subscribe(log);
+notifications.config$.subscribe(log);
+notifications.misc$.subscribe(log);
+notifications.status$.subscribe(log);
+notifications.timer$.subscribe(log);
+notifications.interaction$.subscribe(log);

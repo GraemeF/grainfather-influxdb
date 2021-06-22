@@ -1,6 +1,5 @@
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { isDeepStrictEqual } from 'util';
 
 interface GrainfatherTemperatureNotification {
   type: 'temperature';
@@ -48,7 +47,7 @@ interface GrainfatherConfigNotification {
   boilTemperature: number;
 }
 
-type GrainfatherNotification =
+export type GrainfatherNotification =
   | GrainfatherTemperatureNotification
   | GrainfatherStatusNotification
   | GrainfatherTimerNotification
@@ -183,27 +182,63 @@ export function grainfatherNotifications(notifications: Observable<string>): {
   return {
     temperature$: parsed$.pipe(
       filter(isTemperatureNotification),
-      distinctUntilChanged(isDeepStrictEqual),
+      distinctUntilChanged(
+        (a, b) =>
+          a.targetTemperature === b.targetTemperature &&
+          a.currentTemperature === b.currentTemperature &&
+          a.type === b.type,
+      ),
     ),
     status$: parsed$.pipe(
       filter(isStatusNotification),
-      distinctUntilChanged(isDeepStrictEqual),
+      distinctUntilChanged(
+        (a, b) =>
+          a.autoModeStatus === b.autoModeStatus &&
+          a.delayedHeatMode === b.delayedHeatMode &&
+          a.heatPower === b.heatPower &&
+          a.interactionCode === b.interactionCode &&
+          a.interactionModeStatus === b.interactionModeStatus &&
+          a.pumpStatus === b.pumpStatus &&
+          a.stageNumber === b.stageNumber &&
+          a.stageRampStatus === b.stageRampStatus &&
+          a.type === b.type,
+      ),
     ),
     timer$: parsed$.pipe(
       filter(isTimerNotification),
-      distinctUntilChanged(isDeepStrictEqual),
+      distinctUntilChanged(
+        (a, b) =>
+          a.timerTotalStartTime === b.timerTotalStartTime &&
+          a.timerActive === b.timerActive &&
+          a.timeLeftSeconds === b.timeLeftSeconds &&
+          a.timeLeftMinutes === b.timeLeftMinutes &&
+          a.type === b.type,
+      ),
     ),
     interaction$: parsed$.pipe(
       filter(isInteractionNotification),
-      distinctUntilChanged(isDeepStrictEqual),
+      distinctUntilChanged(
+        (a, b) => a.interactionCode === b.interactionCode && a.type === b.type,
+      ),
     ),
     misc$: parsed$.pipe(
       filter(isMiscNotification),
-      distinctUntilChanged(isDeepStrictEqual),
+      distinctUntilChanged(
+        (a, b) =>
+          a.heatPowerOutputPercentage === b.heatPowerOutputPercentage &&
+          a.isRecipeInterrupted === b.isRecipeInterrupted &&
+          a.isTimerPaused === b.isTimerPaused &&
+          a.manualPowerMode === b.manualPowerMode &&
+          a.spargeWaterAlertDisplayed === b.spargeWaterAlertDisplayed &&
+          a.stepMashMode === b.stepMashMode &&
+          a.type === b.type,
+      ),
     ),
     config$: parsed$.pipe(
       filter(isConfigNotification),
-      distinctUntilChanged(isDeepStrictEqual),
+      distinctUntilChanged(
+        (a, b) => a.boilTemperature === b.boilTemperature && a.type === b.type,
+      ),
     ),
   };
 }
