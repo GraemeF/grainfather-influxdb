@@ -1,5 +1,4 @@
-export default class GrainfatherCommands {
-
+class GrainfatherCommands {
   constructor() {
     this.dismissBoilAdditionAlert = 'A';
     this.cancelTimer = 'C';
@@ -170,7 +169,14 @@ export default class GrainfatherCommands {
     return `J${minutes},`;
   }
 
-  getSkipToStep(stepNum, canEditTime, timeLeftMin, timeLeftSec, skipRamp, disableAddGrain) {
+  getSkipToStep(
+    stepNum,
+    canEditTime,
+    timeLeftMin,
+    timeLeftSec,
+    skipRamp,
+    disableAddGrain,
+  ) {
     return `N${stepNum},${canEditTime},${timeLeftMin},${timeLeftSec},${skipRamp},${disableAddGrain},`;
   }
 
@@ -198,13 +204,36 @@ export default class GrainfatherCommands {
     return `c${code},`;
   }
 
-  getRecipeCommands(boilTime, mashSteps, mashVolume, spargeVolume, showWaterTreatmentAlert, showSpargeCounter, showSpargeAlert, delayedSession, skipStart, name, hopStandTime, boilAdditions, boilPowerMode, strikeTempMode) {
+  getRecipeCommands(
+    boilTime,
+    mashSteps,
+    mashVolume,
+    spargeVolume,
+    showWaterTreatmentAlert,
+    showSpargeCounter,
+    showSpargeAlert,
+    delayedSession,
+    skipStart,
+    name,
+    hopStandTime,
+    boilAdditions,
+    boilPowerMode,
+    strikeTempMode,
+  ) {
     let commands = [];
 
-    commands.push(`R${boilTime},${mashSteps.length},${mashVolume},${spargeVolume},`);
-    commands.push(`${showWaterTreatmentAlert},${showSpargeCounter},${showSpargeAlert},${delayedSession},${skipStart},`);
+    commands.push(
+      `R${boilTime},${mashSteps.length},${mashVolume},${spargeVolume},`,
+    );
+    commands.push(
+      `${showWaterTreatmentAlert},${showSpargeCounter},${showSpargeAlert},${delayedSession},${skipStart},`,
+    );
     commands.push(`${name}`);
-    commands.push(`${hopStandTime},${Object.keys(boilAdditions).length},${boilPowerMode},${strikeTempMode},`);
+    commands.push(
+      `${hopStandTime},${
+        Object.keys(boilAdditions).length
+      },${boilPowerMode},${strikeTempMode},`,
+    );
 
     for (const stop of boilAdditions) {
       commands.push(stop.toString());
@@ -220,77 +249,6 @@ export default class GrainfatherCommands {
 
     return commands;
   }
+}
 
-  parseNotification(notification) {
-    let parsedNotification = {};
-    const components = notification.substring(1).split(',').slice(0, -1);
-    const type = notification[0];
-
-    switch (type) {
-      case 'X':
-        parsedNotification = {
-          type: 'temperature',
-          targetTemperature: Math.min(parseFloat(components[0]), 100),
-          currentTemperature: Math.min(parseFloat(components[1]), 100),
-        };
-        break;
-
-      case 'Y':
-        parsedNotification = {
-          type: 'status',
-          heatPower: components[0],
-          pumpStatus: components[1],
-          autoModeStatus: components[2],
-          stageRampStatus: components[3],
-          interactionModeStatus: components[4],
-          interactionCode: components[5],
-          stageNumber: parseInt(components[6], 10),
-          delayedHeatMode: components[7],
-        };
-        break;
-
-      case 'T':
-        parsedNotification = {
-          type: 'timer',
-          timerActive: components[0],
-          timeLeftMinutes: parseInt(components[1], 10),
-          timerTotalStartTime: parseInt(components[2], 10),
-          timeLeftSeconds: parseInt(components[3], 10),
-        };
-        break;
-
-      case 'I':
-        parsedNotification = {
-          type: 'interaction',
-          interactionCode: components[0],
-        };
-        break;
-
-      case 'W':
-        parsedNotification = {
-          type: 'misc',
-          ...parsedNotification,
-          heatPowerOutputPercentage: parseInt(components[0], 10),
-          isTimerPaused: components[1],
-          stepMashMode: components[2],
-          isRecipeInterrupted: components[3],
-          manualPowerMode: components[4],
-          spargeWaterAlertDisplayed: components[5],
-        };
-        break;
-
-      case 'C':
-        parsedNotification = {
-          type: 'config',
-          boilTemperature: parseFloat(components[0]),
-        };
-        break;
-
-      default:
-        return;
-    }
-
-    return { type: type, ...parsedNotification };
-  }
-
-};
+module.exports = { GrainfatherCommands };
