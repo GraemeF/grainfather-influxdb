@@ -9,31 +9,37 @@ export class InfluxDBWriter {
   constructor(streams: GrainfatherNotificationStreams) {
     this.influxPoints$ = merge(
       streams.temperature$.pipe(
-        map((temperatureUpdate) =>
+        map((update) =>
           new Point('temperature')
-            .floatField('temperature', temperatureUpdate.currentTemperature)
-            .floatField(
-              'targetTemperature',
-              temperatureUpdate.targetTemperature,
-            ),
+            .floatField('temperature', update.currentTemperature)
+            .floatField('targetTemperature', update.targetTemperature),
         ),
       ),
       streams.status$.pipe(
-        map((statusUpdate) =>
+        map((update) =>
           new Point('status')
-            .floatField('isAutoModeOn', statusUpdate.autoModeStatus ? 1 : 0)
-            .floatField('isHeatPowerOn', statusUpdate.heatPower ? 1 : 0)
+            .floatField('isAutoModeOn', update.autoModeStatus ? 1 : 0)
+            .floatField('isHeatPowerOn', update.heatPower ? 1 : 0)
             .floatField(
               'isInteractionModeOn',
-              statusUpdate.interactionModeStatus ? 1 : 0,
+              update.interactionModeStatus ? 1 : 0,
             )
-            .floatField('isPumpPowerOn', statusUpdate.pumpStatus ? 1 : 0)
-            .floatField('isStageRampOn', statusUpdate.stageRampStatus ? 1 : 0)
+            .floatField('isPumpPowerOn', update.pumpStatus ? 1 : 0)
+            .floatField('isStageRampOn', update.stageRampStatus ? 1 : 0)
             .floatField(
               'isInteractionModeOn',
-              statusUpdate.interactionModeStatus ? 1 : 0,
+              update.interactionModeStatus ? 1 : 0,
             )
-            .intField('stageNumber', statusUpdate.stageNumber),
+            .intField('stageNumber', update.stageNumber),
+        ),
+      ),
+      streams.timer$.pipe(
+        map((update) =>
+          new Point('timer')
+            .floatField('isTimerActive', update.timerActive ? 1 : 0)
+            .floatField('timeLeftMinutes', update.timeLeftMinutes)
+            .floatField('timeLeftSeconds', update.timeLeftSeconds)
+            .floatField('timerTotalStartTime', update.timerTotalStartTime),
         ),
       ),
     );

@@ -26,7 +26,7 @@ interface GrainfatherStatusNotification {
 
 interface GrainfatherTimerNotification {
   type: 'timer';
-  timerActive: string;
+  timerActive: boolean;
   timeLeftMinutes: number;
   timerTotalStartTime: number;
   timeLeftSeconds: number;
@@ -175,7 +175,7 @@ function parseNotification(
     case 'T':
       return {
         type: 'timer',
-        timerActive: components[0],
+        timerActive: stringToBoolean(components[0]),
         timeLeftMinutes: parseInt(components[1], 10),
         timerTotalStartTime: parseInt(components[2], 10),
         timeLeftSeconds: parseInt(components[3], 10),
