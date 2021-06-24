@@ -62,6 +62,7 @@ export default class Bluetooth extends EventEmitter {
         this.writeCharacteristic = null;
         this.readCharacteristic = null;
         console.log('Disconnected :(');
+        process.exit(1);
       });
 
       console.log('Discovering characteristics');
