@@ -2,13 +2,15 @@ import {
   GrainfatherNotification,
   grainfatherNotifications,
 } from './grainfatherNotifications';
-import { fromEvent } from 'rxjs';
+import { fromEvent, Observable } from 'rxjs';
 import Bluetooth from './Bluetooth';
 import { map } from 'rxjs/operators';
+import { InfluxDBWriter } from './InfluxDBWriter';
 
-const notificationStrings = fromEvent(new Bluetooth(), 'data').pipe(
-  map((data) => data.toString()),
-);
+const notificationStrings: Observable<string> = fromEvent(
+  new Bluetooth(),
+  'data',
+).pipe(map((data) => data.toString()));
 
 const notifications = grainfatherNotifications(notificationStrings);
 
@@ -22,3 +24,15 @@ notifications.misc$.subscribe(log);
 notifications.status$.subscribe(log);
 notifications.timer$.subscribe(log);
 notifications.interaction$.subscribe(log);
+
+const influxUrl = process.env['INFLUXDB_URL'];
+if (influxUrl) {
+  console.log(`Sending points to ${influxUrl}`);
+  const writer = new InfluxDBWriter(notifications);
+  writer.subscribe({
+    url: influxUrl!,
+    token: process.env['INFLUXDB_TOKEN']!,
+    bucket: process.env['INFLUXDB_BUCKET']!,
+    org: process.env['INFLUXDB_ORG']!,
+  });
+}

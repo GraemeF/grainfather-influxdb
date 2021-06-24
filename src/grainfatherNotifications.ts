@@ -222,7 +222,7 @@ function parseNotification(
   }
 }
 
-export function grainfatherNotifications(notifications: Observable<string>): {
+export interface GrainfatherNotificationStreams {
   temperature$: Observable<GrainfatherTemperatureNotification>;
   status$: Observable<GrainfatherStatusNotification>;
   timer$: Observable<GrainfatherTimerNotification>;
@@ -231,7 +231,11 @@ export function grainfatherNotifications(notifications: Observable<string>): {
   config$: Observable<GrainfatherConfigNotification>;
   environment$: Observable<GrainfatherEnvironmentNotification>;
   firmware$: Observable<GrainfatherFirmwareNotification>;
-} {
+}
+
+export function grainfatherNotifications(
+  notifications: Observable<string>,
+): GrainfatherNotificationStreams {
   const parsed$ = notifications.pipe(
     map((dataString) => parseNotification(dataString)),
     filter(isGrainfatherNotification),
