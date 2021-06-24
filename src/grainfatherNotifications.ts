@@ -10,7 +10,7 @@ interface GrainfatherTemperatureNotification {
 interface GrainfatherStatusNotification {
   type: 'status';
   heatPower: string;
-  pumpStatus: string;
+  pumpStatus: boolean;
   autoModeStatus: string;
   stageRampStatus: string;
   interactionModeStatus: string;
@@ -35,9 +35,9 @@ interface GrainfatherInteractionNotification {
 interface GrainfatherMiscNotification {
   type: 'misc';
   heatPowerOutputPercentage: number;
-  isTimerPaused: string;
+  isTimerPaused: boolean;
   stepMashMode: string;
-  isRecipeInterrupted: string;
+  isRecipeInterrupted: boolean;
   manualPowerMode: string;
   spargeWaterAlertDisplayed: string;
 }
@@ -104,7 +104,18 @@ function isConfigNotification(x: {
   return ['config'].includes(x?.type);
 }
 
-function parseNotification(notification): GrainfatherNotification | undefined {
+function stringToBoolean(s: string): boolean {
+  const number = parseInt(s, 10);
+
+  if (![0, 1].includes(number))
+    console.error(`String "${s}" does not look like a boolean!`);
+
+  return number !== 0;
+}
+
+function parseNotification(
+  notification: string,
+): GrainfatherNotification | undefined {
   const components = notification.substring(1).split(',').slice(0, -1);
   const type = notification[0];
 
@@ -120,7 +131,7 @@ function parseNotification(notification): GrainfatherNotification | undefined {
       return {
         type: 'status',
         heatPower: components[0],
-        pumpStatus: components[1],
+        pumpStatus: stringToBoolean(components[1]),
         autoModeStatus: components[2],
         stageRampStatus: components[3],
         interactionModeStatus: components[4],
@@ -148,9 +159,9 @@ function parseNotification(notification): GrainfatherNotification | undefined {
       return {
         type: 'misc',
         heatPowerOutputPercentage: parseInt(components[0], 10),
-        isTimerPaused: components[1],
+        isTimerPaused: stringToBoolean(components[1]),
         stepMashMode: components[2],
-        isRecipeInterrupted: components[3],
+        isRecipeInterrupted: stringToBoolean(components[3]),
         manualPowerMode: components[4],
         spargeWaterAlertDisplayed: components[5],
       };
