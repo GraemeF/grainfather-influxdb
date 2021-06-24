@@ -210,7 +210,6 @@ export function grainfatherNotifications(notifications: Observable<string>): {
         (a, b) =>
           a.timerTotalStartTime === b.timerTotalStartTime &&
           a.timerActive === b.timerActive &&
-          a.timeLeftSeconds === b.timeLeftSeconds &&
           a.timeLeftMinutes === b.timeLeftMinutes &&
           a.type === b.type,
       ),

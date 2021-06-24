@@ -84,25 +84,59 @@ describe('grainfatherNotifications', () => {
     });
   });
 
-  it('skips duplicated timer notifications when there are other notifications between', async () => {
-    scheduler.run(({ cold, expectObservable }) => {
-      const temperatures = {
-        a: 'X61.0,23.8,ZZZZZZ',
-        b: 'T0,0,0,0,ZZZZZZZZ',
-      };
-      const temperatures$ = cold('bab', temperatures);
-      expectObservable(grainfatherNotifications(temperatures$).timer$).toBe(
-        'b--',
-        {
-          b: {
-            type: 'timer',
-            timerActive: '0',
-            timeLeftMinutes: 0,
-            timerTotalStartTime: 0,
-            timeLeftSeconds: 0,
+
+  describe('timer notification', () => {
+    it('skips duplicated timer notifications when there are other notifications between', async () => {
+      scheduler.run(({ cold, expectObservable }) => {
+        const temperatures = {
+          a: 'X61.0,23.8,ZZZZZZ',
+          b: 'T0,0,0,0,ZZZZZZZZ',
+        };
+        const temperatures$ = cold('bab', temperatures);
+        expectObservable(grainfatherNotifications(temperatures$).timer$).toBe(
+          'b--',
+          {
+            b: {
+              type: 'timer',
+              timerActive: '0',
+              timeLeftMinutes: 0,
+              timerTotalStartTime: 0,
+              timeLeftSeconds: 0,
+            },
           },
-        },
-      );
+        );
+      });
+    });
+
+    it('ignores changes to seconds', async () => {
+      scheduler.run(({ cold, expectObservable }) => {
+        const notifications = {
+          a: 'T0,3,0,10,ZZZZZZZZ',
+          b: 'T0,3,0,9,ZZZZZZZZ',
+          c: 'T0,3,0,8,ZZZZZZZZ',
+          d: 'T0,2,0,8,ZZZZZZZZ',
+        };
+        const notifications$ = cold('abcd', notifications);
+        expectObservable(grainfatherNotifications(notifications$).timer$).toBe(
+          'a--d',
+          {
+            a: {
+              type: 'timer',
+              timerActive: '0',
+              timeLeftMinutes: 3,
+              timerTotalStartTime: 0,
+              timeLeftSeconds: 10,
+            },
+            d: {
+              type: 'timer',
+              timerActive: '0',
+              timeLeftMinutes: 2,
+              timerTotalStartTime: 0,
+              timeLeftSeconds: 8,
+            },
+          },
+        );
+      });
     });
   });
 });
