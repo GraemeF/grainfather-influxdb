@@ -47,13 +47,26 @@ interface GrainfatherConfigNotification {
   boilTemperature: number;
 }
 
+interface GrainfatherEnvironmentNotification {
+  type: 'environment';
+  voltage: number;
+  temperatureUnits: '°F' | '°C';
+}
+
+interface GrainfatherFirmwareNotification {
+  type: 'firmware';
+  firmwareVersion: string;
+}
+
 export type GrainfatherNotification =
   | GrainfatherTemperatureNotification
   | GrainfatherStatusNotification
   | GrainfatherTimerNotification
   | GrainfatherInteractionNotification
   | GrainfatherMiscNotification
-  | GrainfatherConfigNotification;
+  | GrainfatherConfigNotification
+  | GrainfatherEnvironmentNotification
+  | GrainfatherFirmwareNotification;
 
 function isGrainfatherNotification(x: {
   type: string;
@@ -65,6 +78,8 @@ function isGrainfatherNotification(x: {
     'interaction',
     'misc',
     'config',
+    'environment',
+    'firmware',
   ].includes(x?.type);
 }
 
@@ -102,6 +117,18 @@ function isConfigNotification(x: {
   type: string;
 }): x is GrainfatherConfigNotification {
   return ['config'].includes(x?.type);
+}
+
+function isEnvironmentNotification(x: {
+  type: string;
+}): x is GrainfatherEnvironmentNotification {
+  return ['environment'].includes(x?.type);
+}
+
+function isFirmwareNotification(x: {
+  type: string;
+}): x is GrainfatherFirmwareNotification {
+  return ['firmware'].includes(x?.type);
 }
 
 function stringToBoolean(s: string): boolean {
@@ -166,10 +193,23 @@ function parseNotification(
         spargeWaterAlertDisplayed: components[5],
       };
 
+    case 'V':
+      return {
+        type: 'environment',
+        voltage: components[0] === '0' ? 230 : 110,
+        temperatureUnits: components[0] === '0' ? '°F' : '°C',
+      };
+
     case 'C':
       return {
         type: 'config',
         boilTemperature: parseFloat(components[0]),
+      };
+
+    case 'F':
+      return {
+        type: 'firmware',
+        firmwareVersion: components[0],
       };
 
     default:
@@ -184,6 +224,8 @@ export function grainfatherNotifications(notifications: Observable<string>): {
   interaction$: Observable<GrainfatherInteractionNotification>;
   misc$: Observable<GrainfatherMiscNotification>;
   config$: Observable<GrainfatherConfigNotification>;
+  environment$: Observable<GrainfatherEnvironmentNotification>;
+  firmware$: Observable<GrainfatherFirmwareNotification>;
 } {
   const parsed$ = notifications.pipe(
     map((dataString) => parseNotification(dataString)),
@@ -249,6 +291,17 @@ export function grainfatherNotifications(notifications: Observable<string>): {
       distinctUntilChanged(
         (a, b) => a.boilTemperature === b.boilTemperature && a.type === b.type,
       ),
+    ),
+    environment$: parsed$.pipe(
+      filter(isEnvironmentNotification),
+      distinctUntilChanged(
+        (a, b) =>
+          a.voltage === b.voltage && a.temperatureUnits === b.temperatureUnits,
+      ),
+    ),
+    firmware$: parsed$.pipe(
+      filter(isFirmwareNotification),
+      distinctUntilChanged((a, b) => a.firmwareVersion === b.firmwareVersion),
     ),
   };
 }
