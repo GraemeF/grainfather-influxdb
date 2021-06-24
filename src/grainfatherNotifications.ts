@@ -14,11 +14,11 @@ interface GrainfatherTemperatureNotification {
 
 interface GrainfatherStatusNotification {
   type: 'status';
-  heatPower: string;
+  heatPower: boolean;
   pumpStatus: boolean;
-  autoModeStatus: string;
-  stageRampStatus: string;
-  interactionModeStatus: string;
+  autoModeStatus: boolean;
+  stageRampStatus: boolean;
+  interactionModeStatus: boolean;
   interactionCode: string;
   stageNumber: number;
   delayedHeatMode: string;
@@ -162,11 +162,11 @@ function parseNotification(
     case 'Y':
       return {
         type: 'status',
-        heatPower: components[0],
+        heatPower: stringToBoolean(components[0]),
         pumpStatus: stringToBoolean(components[1]),
-        autoModeStatus: components[2],
-        stageRampStatus: components[3],
-        interactionModeStatus: components[4],
+        autoModeStatus: stringToBoolean(components[2]),
+        stageRampStatus: stringToBoolean(components[3]),
+        interactionModeStatus: stringToBoolean(components[4]),
         interactionCode: components[5],
         stageNumber: parseInt(components[6], 10),
         delayedHeatMode: components[7],
