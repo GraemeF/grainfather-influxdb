@@ -42,6 +42,14 @@ export class InfluxDBWriter {
             .floatField('timerTotalStartTime', update.timerTotalStartTime),
         ),
       ),
+      streams.misc$.pipe(
+        map((update) =>
+          new Point('misc').floatField(
+            'heatPowerOutputPercentage',
+            update.heatPowerOutputPercentage,
+          ),
+        ),
+      ),
     );
   }
 
