@@ -24,7 +24,7 @@ describe('grainfatherNotifications', () => {
           {
             b: {
               type: 'timer',
-              timerActive: '0',
+              timerActive: false,
               timeLeftMinutes: 0,
               timerTotalStartTime: 0,
               timeLeftSeconds: 0,
@@ -48,14 +48,14 @@ describe('grainfatherNotifications', () => {
           {
             a: {
               type: 'timer',
-              timerActive: '0',
+              timerActive: false,
               timeLeftMinutes: 3,
               timerTotalStartTime: 0,
               timeLeftSeconds: 10,
             },
             d: {
               type: 'timer',
-              timerActive: '0',
+              timerActive: false,
               timeLeftMinutes: 2,
               timerTotalStartTime: 0,
               timeLeftSeconds: 8,
