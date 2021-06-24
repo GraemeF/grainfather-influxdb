@@ -11,80 +11,6 @@ describe('grainfatherNotifications', () => {
     });
   });
 
-  it('parses multiple temperature notifications', async () => {
-    scheduler.run(({ cold, expectObservable }) => {
-      const temperatures = {
-        a: 'X61.0,23.8,ZZZZZZ',
-        b: 'X62.0,24.8,ZZZZZZ',
-        c: 'X63.0,25.8,ZZZZZZ',
-      };
-      const temperatures$ = cold('abc', temperatures);
-      expectObservable(
-        grainfatherNotifications(temperatures$).temperature$,
-      ).toBe('abc', {
-        a: {
-          type: 'temperature',
-          currentTemperature: 23.8,
-          targetTemperature: 61.0,
-        },
-        b: {
-          type: 'temperature',
-          currentTemperature: 24.8,
-          targetTemperature: 62.0,
-        },
-        c: {
-          type: 'temperature',
-          currentTemperature: 25.8,
-          targetTemperature: 63.0,
-        },
-      });
-    });
-  });
-
-  it('skips duplicated temperature notifications', async () => {
-    scheduler.run(({ cold, expectObservable }) => {
-      const temperatures = {
-        a: 'X61.0,23.8,ZZZZZZ',
-        c: 'X63.0,25.8,ZZZZZZ',
-      };
-      const temperatures$ = cold('aac', temperatures);
-      expectObservable(
-        grainfatherNotifications(temperatures$).temperature$,
-      ).toBe('a-c', {
-        a: {
-          type: 'temperature',
-          currentTemperature: 23.8,
-          targetTemperature: 61.0,
-        },
-        c: {
-          type: 'temperature',
-          currentTemperature: 25.8,
-          targetTemperature: 63.0,
-        },
-      });
-    });
-  });
-
-  it('skips duplicated temperature notifications when there are other notifications between', async () => {
-    scheduler.run(({ cold, expectObservable }) => {
-      const temperatures = {
-        a: 'X61.0,23.8,ZZZZZZ',
-        b: 'T0,0,0,0,ZZZZZZZZ',
-      };
-      const temperatures$ = cold('aba', temperatures);
-      expectObservable(
-        grainfatherNotifications(temperatures$).temperature$,
-      ).toBe('a--', {
-        a: {
-          type: 'temperature',
-          currentTemperature: 23.8,
-          targetTemperature: 61.0,
-        },
-      });
-    });
-  });
-
-
   describe('timer notification', () => {
     it('skips duplicated timer notifications when there are other notifications between', async () => {
       scheduler.run(({ cold, expectObservable }) => {
@@ -136,6 +62,106 @@ describe('grainfatherNotifications', () => {
             },
           },
         );
+      });
+    });
+  });
+
+  describe('temperature notification', () => {
+    it('parses multiple temperature notifications', async () => {
+      scheduler.run(({ cold, expectObservable }) => {
+        const temperatures = {
+          a: 'X61.0,23.8,ZZZZZZ',
+          b: 'X62.0,24.8,ZZZZZZ',
+          c: 'X63.0,25.8,ZZZZZZ',
+        };
+        const temperatures$ = cold('a 10s b 10s c', temperatures);
+        expectObservable(
+          grainfatherNotifications(temperatures$).temperature$,
+        ).toBe('a 10s b 10s c', {
+          a: {
+            type: 'temperature',
+            currentTemperature: 23.8,
+            targetTemperature: 61.0,
+          },
+          b: {
+            type: 'temperature',
+            currentTemperature: 24.8,
+            targetTemperature: 62.0,
+          },
+          c: {
+            type: 'temperature',
+            currentTemperature: 25.8,
+            targetTemperature: 63.0,
+          },
+        });
+      });
+    });
+
+    it('skips duplicated temperature notifications', async () => {
+      scheduler.run(({ cold, expectObservable }) => {
+        const temperatures = {
+          a: 'X61.0,23.8,ZZZZZZ',
+          c: 'X63.0,25.8,ZZZZZZ',
+        };
+        const temperatures$ = cold('a 10s a 10s c', temperatures);
+        expectObservable(
+          grainfatherNotifications(temperatures$).temperature$,
+        ).toBe('a 10s - 10s c', {
+          a: {
+            type: 'temperature',
+            currentTemperature: 23.8,
+            targetTemperature: 61.0,
+          },
+          c: {
+            type: 'temperature',
+            currentTemperature: 25.8,
+            targetTemperature: 63.0,
+          },
+        });
+      });
+    });
+
+    it('skips duplicated temperature notifications when there are other notifications between', async () => {
+      scheduler.run(({ cold, expectObservable }) => {
+        const temperatures = {
+          a: 'X61.0,23.8,ZZZZZZ',
+          b: 'T0,0,0,0,ZZZZZZZZ',
+        };
+        const temperatures$ = cold('aba', temperatures);
+        expectObservable(
+          grainfatherNotifications(temperatures$).temperature$,
+        ).toBe('a--', {
+          a: {
+            type: 'temperature',
+            currentTemperature: 23.8,
+            targetTemperature: 61.0,
+          },
+        });
+      });
+    });
+
+    it('throttles the temperatures', async () => {
+      scheduler.run(({ cold, expectObservable }) => {
+        const notifications = {
+          a: 'X61.0,10.0,ZZZZZZ',
+          b: 'X61.0,11.0,ZZZZZZ',
+          c: 'X61.0,12.0,ZZZZZZ',
+        };
+        const notification$ = cold('a 500ms b 500ms c', notifications);
+        expectObservable(
+          grainfatherNotifications(notification$).temperature$,
+        ).toBe('a 500ms - 500ms c', {
+          a: {
+            type: 'temperature',
+            targetTemperature: 61,
+            currentTemperature: 10,
+          },
+          c: {
+            type: 'temperature',
+            targetTemperature: 61,
+            currentTemperature: 12,
+          },
+        });
       });
     });
   });

@@ -1,5 +1,10 @@
 import { Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map } from 'rxjs/operators';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  throttleTime,
+} from 'rxjs/operators';
 
 interface GrainfatherTemperatureNotification {
   type: 'temperature';
@@ -241,6 +246,7 @@ export function grainfatherNotifications(notifications: Observable<string>): {
           a.currentTemperature === b.currentTemperature &&
           a.type === b.type,
       ),
+      throttleTime(1000),
     ),
     status$: parsed$.pipe(
       filter(isStatusNotification),
